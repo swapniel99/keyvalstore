@@ -20,7 +20,8 @@ func main() {
 		// Wait for a connection.
 		conn, err := l.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 		// Handle the connection in a new goroutine.
 		// The loop then returns to accepting, so that
@@ -47,8 +48,13 @@ func handleConn(conn net.Conn, ch chan string) {
 			}
 			break
 		}
+		//Scan next line
 		str := scanner.Text()
+
+		//Do work here
 		ch <- str
+
+		//Send response
 		_, err := fmt.Fprintf(writer, str+"\r\n")
 		if err != nil {
 			log.Println("ERROR writing:", conn.RemoteAddr(), err)
@@ -64,6 +70,7 @@ func handleConn(conn net.Conn, ch chan string) {
 }
 
 func dowork(ch chan string) {
+	//The map which actually stores values
 	for s := range ch {
 		fmt.Println(s)
 	}
