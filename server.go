@@ -14,6 +14,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer l.Close()
+	ch := make(chan string)
+	go dowork(ch)
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
@@ -23,13 +25,13 @@ func main() {
 		// Handle the connection in a new goroutine.
 		// The loop then returns to accepting, so that
 		// multiple connections may be served concurrently.
-		go handleConn(conn)
+		go handleConn(conn, ch)
 	}
 }
 
-func handleConn(conn net.Conn) {
+func handleConn(conn net.Conn, ch chan string) {
 	// Echo all incoming data.
-	log.Println(conn.RemoteAddr(),"connected.")
+	log.Println(conn.RemoteAddr(), "connected.")
 	scanner := bufio.NewScanner(conn)
 	writer := bufio.NewWriter(conn)
 	for {
@@ -37,13 +39,16 @@ func handleConn(conn net.Conn) {
 		if !success {
 			e := scanner.Err()
 			if e != nil {
-				log.Println("ERROR reading: ", conn.RemoteAddr(), e)
+				//Read error
+				log.Println("ERROR reading:", conn.RemoteAddr(), e)
 			} else {
+				//EOF received
 				log.Println("End of Transmission by", conn.RemoteAddr())
 			}
 			break
 		}
 		str := scanner.Text()
+		ch <- str
 		_, err := fmt.Fprintf(writer, str+"\r\n")
 		if err != nil {
 			log.Println("ERROR writing:", conn.RemoteAddr(), err)
@@ -56,4 +61,10 @@ func handleConn(conn net.Conn) {
 	// Shut down the connection.
 	log.Println("Closing connection", conn.RemoteAddr())
 	conn.Close()
+}
+
+func dowork(ch chan string) {
+	for s := range ch {
+		fmt.Println(s)
+	}
 }
