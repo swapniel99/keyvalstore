@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -78,6 +79,10 @@ func mapman(ch <-chan command) {
 				}
 				r = "CLEANED\r\n"
 			}
+		default:
+			{
+				r = "ERR_INTERNAL\r\n"
+			}
 		}
 		cmd.resp <- r
 	}
@@ -89,7 +94,7 @@ func cleaner(interval int, ch chan<- command) {
 	for {
 		time.Sleep(time.Duration(interval) * time.Second)
 		ch <- c
-		s := <-resp
-		fmt.Println(s)
+		s := <-resp //	Receive "CLEANED\r\n" message
+		log.Println(s)
 	}
 }

@@ -5,6 +5,12 @@ import (
 	"net"
 )
 
+type NullWriter int
+
+func (NullWriter) Write([]byte) (int, error) {
+	return 0, nil
+}
+
 type value struct {
 	data     string
 	numbytes int
@@ -25,6 +31,9 @@ type command struct {
 
 func main() {
 	// Listen on TCP port 9000 on all interfaces.
+
+	log.SetOutput(new(NullWriter))
+
 	l, err := net.Listen("tcp", ":9000")
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +41,7 @@ func main() {
 	defer l.Close()
 	ch := make(chan command)
 	go mapman(ch)
-	go cleaner(1, ch)
+	go cleaner(2, ch)
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
