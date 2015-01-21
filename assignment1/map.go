@@ -21,7 +21,11 @@ func mapman(ch <-chan command) {
 				} else {
 					version = val.version
 				}
-				m[cmd.key] = value{cmd.data, cmd.numbytes, version + 1, time.Now().Unix() + cmd.expiry}
+				t := cmd.expiry
+				if t != 0 {
+					t += time.Now().Unix()
+				}
+				m[cmd.key] = value{cmd.data, cmd.numbytes, version + 1, t}
 				r = fmt.Sprintf("OK %v\r\n", version+1)
 			}
 		case 1:
@@ -33,7 +37,10 @@ func mapman(ch <-chan command) {
 		case 2:
 			{
 				if ok {
-					t := val.expiry - time.Now().Unix() // remaining time
+					t := val.expiry
+					if t != 0 {
+						t = val.expiry - time.Now().Unix() // remaining time
+					}
 					if t < 0 {
 						t = 0
 					}
@@ -44,7 +51,11 @@ func mapman(ch <-chan command) {
 			{
 				if ok {
 					if val.version == cmd.version {
-						m[cmd.key] = value{cmd.data, cmd.numbytes, val.version + 1, time.Now().Unix() + cmd.expiry}
+						t := cmd.expiry
+						if t != 0 {
+							t += time.Now().Unix()
+						}
+						m[cmd.key] = value{cmd.data, cmd.numbytes, val.version + 1, t}
 						r = fmt.Sprintf("OK %v\r\n", val.version+1)
 					} else {
 						r = fmt.Sprintf("ERR_VERSION\r\n")
@@ -61,7 +72,7 @@ func mapman(ch <-chan command) {
 		case 5:
 			{
 				for k, v := range m {
-					if v.expiry-time.Now().Unix() < 0 {
+					if v.expiry != 0 && v.expiry-time.Now().Unix() < 0 {
 						delete(m, k)
 					}
 				}

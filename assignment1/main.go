@@ -32,7 +32,7 @@ func main() {
 	defer l.Close()
 	ch := make(chan command)
 	go mapman(ch)
-	go cleaner(5, ch)
+	go cleaner(1, ch)
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
