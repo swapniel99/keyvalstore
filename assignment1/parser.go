@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"strconv"
 	"strings"
-	"errors"
 )
 
 func parser(cmd string) (command, error) {
@@ -23,7 +23,7 @@ func parser(cmd string) (command, error) {
 			if e1 != nil || exp < 0 {
 				return c, e
 			}
-			c.expiry = uint64(exp)
+			c.expiry = int64(exp)
 			numb, e2 := strconv.Atoi(arr[3])
 			if e2 != nil || numb < 0 {
 				return c, e
@@ -67,7 +67,7 @@ func parser(cmd string) (command, error) {
 			if e1 != nil || exp < 0 {
 				return c, e
 			}
-			c.expiry = uint64(exp)
+			c.expiry = int64(exp)
 			ver, e2 := strconv.Atoi(arr[3])
 			if e2 != nil || ver <= 0 {
 				return c, e
@@ -94,6 +94,14 @@ func parser(cmd string) (command, error) {
 			}
 			c.action = 4
 			c.key = arr[1]
+			return c, nil
+		}
+	case "cleanup": // Not specified in syntax, but provides manual cleanup option
+		{
+			if l != 1 {
+				return c, e
+			}
+			c.action = 5
 			return c, nil
 		}
 	default:

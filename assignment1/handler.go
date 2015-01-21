@@ -4,19 +4,20 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"net")
+	"net"
+)
 
-func handleConn(conn net.Conn, ch chan command) {
-	addr:=conn.RemoteAddr()
+func handleConn(conn net.Conn, ch chan<- command) {
+	addr := conn.RemoteAddr()
 	log.Println(addr, "connected.")
 	scanner := bufio.NewScanner(conn)
 	writer := bufio.NewWriter(conn)
 	resp := make(chan string) // Response channel
-	
+
 	for {
 		//Command Prompt
 		write(writer, addr, "kv@cs733 ~ $ ")
-		
+
 		success := scanner.Scan()
 		if !success {
 			e := scanner.Err()
@@ -29,13 +30,13 @@ func handleConn(conn net.Conn, ch chan command) {
 			}
 			break
 		}
-		
+
 		//Scan next line
 		str := scanner.Text()
-		if str=="" {
-			continue	//Empty command
+		if str == "" {
+			continue //Empty command
 		}
-		
+
 		cmd, e := parser(str)
 		if e != nil {
 			write(writer, addr, e.Error())

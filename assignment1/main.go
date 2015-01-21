@@ -9,13 +9,13 @@ type value struct {
 	data     string
 	numbytes int
 	version  uint64
-	expiry   uint64
+	expiry   int64
 }
 
 type command struct {
-	action   int // 0=set, 1=get, 2=getm, 3=cas, 4=delete
+	action   int // 0=set, 1=get, 2=getm, 3=cas, 4=delete, [5=cleanup]-hidden
 	key      string
-	expiry   uint64
+	expiry   int64
 	version  uint64
 	numbytes int
 	noreply  bool
@@ -32,6 +32,7 @@ func main() {
 	defer l.Close()
 	ch := make(chan command)
 	go mapman(ch)
+	go cleaner(5, ch)
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
