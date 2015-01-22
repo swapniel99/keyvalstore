@@ -11,8 +11,8 @@ func mapman(ch <-chan command) {
 	//The map which actually stores values
 	m := make(map[string]value)
 	for cmd := range ch {
-		val, ok := m[cmd.key]
 		r := "ERR_NOT_FOUND\r\n"
+		val, ok := m[cmd.key]
 		switch cmd.action {
 		case 0:
 			{
