@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"time"
 )
 
 type NullWriter int
@@ -33,18 +34,27 @@ func main() {
 	// Listen on TCP port 9000 on all interfaces.
 
 	log.SetOutput(new(NullWriter))
-
-	l, err := net.Listen("tcp", ":9000")
-	if err != nil {
-		log.Fatal(err)
+	
+	var l net.Listener
+	var err error
+	
+	for {
+		l, err = net.Listen("tcp", ":9000")
+		if err != nil {
+			log.Println(err)
+			time.Sleep(time.Second)
+		} else {
+			break
+		}
 	}
+	
 	defer l.Close()
 	ch := make(chan *command, 10000)
 	go mapman(ch)
 	for {
 		// Wait for a connection.
-		conn, err := l.Accept()
-		if err != nil {
+		conn, err2 := l.Accept()
+		if err2 != nil {
 			log.Println(err)
 			continue
 		}
