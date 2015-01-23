@@ -34,10 +34,10 @@ func main() {
 	// Listen on TCP port 9000 on all interfaces.
 
 	log.SetOutput(new(NullWriter))
-	
+
 	var l net.Listener
 	var err error
-	
+
 	for {
 		l, err = net.Listen("tcp", ":9000")
 		if err != nil {
@@ -47,7 +47,7 @@ func main() {
 			break
 		}
 	}
-	
+
 	defer l.Close()
 	ch := make(chan *command, 10000)
 	go mapman(ch)

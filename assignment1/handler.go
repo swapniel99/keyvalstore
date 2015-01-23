@@ -12,7 +12,7 @@ func handleConn(conn net.Conn, ch chan<- *command) {
 	log.Println(addr, "connected.")
 	scanner := bufio.NewScanner(conn)
 	writer := bufio.NewWriter(conn)
-	resp := make(chan string, 2) // Response channel
+	resp := make(chan string, 1) // Response channel
 
 	for {
 		//Command Prompt
