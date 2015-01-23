@@ -16,7 +16,7 @@ func handleConn(conn net.Conn, ch chan<- command) {
 
 	for {
 		//Command Prompt
-		write(writer, addr, "kv@cs733 ~ $ ")
+		//		write(writer, addr, "kv@cs733 ~ $ ")	// The Command Prompt :)
 
 		success := scanner.Scan()
 		if !success {

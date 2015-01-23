@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"log"
+	//	"log"
 	"time"
 )
 
 //Map Manager
-func mapman(ch <-chan command) {
+func mapman(ch chan command) {
 	//The map which actually stores values
 	m := make(map[string]value)
+	go cleaner(1, ch)
 	for cmd := range ch {
 		r := "ERR_NOT_FOUND\r\n"
 		val, ok := m[cmd.key]
@@ -94,7 +95,7 @@ func cleaner(interval int, ch chan<- command) {
 	for {
 		time.Sleep(time.Duration(interval) * time.Second)
 		ch <- c
-		s := <-resp //	Receive "CLEANED\r\n" message
-		log.Println(s)
+		<-resp //	Receive "CLEANED\r\n" message
+		//		log.Println(s)
 	}
 }
