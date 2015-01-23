@@ -14,7 +14,7 @@ import (
 func TestConcurrentSets(t *testing.T) {
 	N := 10000 //Number of concurrent writes: 10 thousand
 	ch := make(chan *command)
-	resp := make(chan string) // Response channel
+	resp := make(chan string, 2) // Response channel
 	c := command{0, "key", 0, 0, 5, false, "value", resp}
 
 	go mapman(ch)
@@ -57,7 +57,7 @@ func TestConcurrentSets(t *testing.T) {
 func TestConcurrentGets(t *testing.T) {
 	N := 10000 //Number of concurrent reads: 10 thousand
 	ch := make(chan *command)
-	resp := make(chan string) // Response channel
+	resp := make(chan string, 2) // Response channel
 	c := command{0, "key", 0, 0, 5, false, "value", resp}
 
 	go mapman(ch)
@@ -96,7 +96,7 @@ func TestConcurrentGets(t *testing.T) {
 
 func TestExpiry(t *testing.T) {
 	ch := make(chan *command)
-	resp := make(chan string) // Response channel
+	resp := make(chan string, 2) // Response channel
 	c := command{0, "key", 2, 0, 5, false, "value", resp}
 
 	go mapman(ch)
@@ -130,7 +130,7 @@ func TestConcurrentTCPSets(t *testing.T) {
 		go client(t, k, ack, i)
 	}
 
-	tick := time.Tick(5 * time.Second)
+	tick := time.Tick(3 * time.Second)
 
 	for i := 0; i < N; i++ {
 		select {

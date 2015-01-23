@@ -90,7 +90,7 @@ func mapman(ch chan *command) {
 }
 
 func cleaner(interval int, ch chan<- *command) {
-	resp := make(chan string) // Response channel
+	resp := make(chan string, 2) // Response channel
 	c := command{5, "", 0, 0, 0, false, "", resp}
 	for {
 		time.Sleep(time.Duration(interval) * time.Second)
