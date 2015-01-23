@@ -7,7 +7,7 @@ import (
 )
 
 //Map Manager
-func mapman(ch chan command) {
+func mapman(ch chan *command) {
 	//The map which actually stores values
 	m := make(map[string]value)
 	go cleaner(1, ch)
@@ -89,12 +89,12 @@ func mapman(ch chan command) {
 	}
 }
 
-func cleaner(interval int, ch chan<- command) {
+func cleaner(interval int, ch chan<- *command) {
 	resp := make(chan string) // Response channel
 	c := command{5, "", 0, 0, 0, false, "", resp}
 	for {
 		time.Sleep(time.Duration(interval) * time.Second)
-		ch <- c
+		ch <- &c
 		<-resp //	Receive "CLEANED\r\n" message
 		//		log.Println(s)
 	}

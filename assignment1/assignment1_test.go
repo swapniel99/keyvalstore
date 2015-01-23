@@ -13,7 +13,7 @@ import (
 
 func TestConcurrentSets(t *testing.T) {
 	N := 10000 //Number of concurrent writes: 10 thousand
-	ch := make(chan command)
+	ch := make(chan *command)
 	resp := make(chan string) // Response channel
 	c := command{0, "key", 0, 0, 5, false, "value", resp}
 
@@ -23,7 +23,7 @@ func TestConcurrentSets(t *testing.T) {
 
 	for i := 0; i < N; i++ {
 		go func() {
-			ch <- c
+			ch <- &c
 			r := strings.Split(<-resp, " ")[0]
 			if "OK" == r {
 				ack <- true
@@ -47,7 +47,7 @@ func TestConcurrentSets(t *testing.T) {
 	c.action = 2
 	c.data = ""
 
-	ch <- c
+	ch <- &c
 	r := strings.Split(<-resp, " ")[1]
 	if strconv.Itoa(N) != r {
 		t.Error("Serial version mismatch : Got "+r+" instead of", N)
@@ -56,12 +56,12 @@ func TestConcurrentSets(t *testing.T) {
 
 func TestConcurrentGets(t *testing.T) {
 	N := 10000 //Number of concurrent reads: 10 thousand
-	ch := make(chan command)
+	ch := make(chan *command)
 	resp := make(chan string) // Response channel
 	c := command{0, "key", 0, 0, 5, false, "value", resp}
 
 	go mapman(ch)
-	ch <- c
+	ch <- &c
 	if "OK 1\r\n" != <-resp {
 		t.Error("Unable to set : ")
 	}
@@ -73,7 +73,7 @@ func TestConcurrentGets(t *testing.T) {
 
 	for i := 0; i < N; i++ {
 		go func() {
-			ch <- c
+			ch <- &c
 			if "VALUE 5\r\nvalue\r\n" == <-resp {
 				ack <- true
 			}
@@ -95,12 +95,12 @@ func TestConcurrentGets(t *testing.T) {
 }
 
 func TestExpiry(t *testing.T) {
-	ch := make(chan command)
+	ch := make(chan *command)
 	resp := make(chan string) // Response channel
 	c := command{0, "key", 2, 0, 5, false, "value", resp}
 
 	go mapman(ch)
-	ch <- c
+	ch <- &c
 	if "OK" != strings.Split(<-resp, " ")[0] {
 		t.Error("Unable to set.")
 	}
@@ -111,7 +111,7 @@ func TestExpiry(t *testing.T) {
 	c.data = ""
 	c.expiry = 0
 
-	ch <- c
+	ch <- &c
 	r := <-resp
 	if "ERR_NOT_FOUND\r\n" != r {
 		t.Error("Value not expired : " + r)

@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer l.Close()
-	ch := make(chan command, 10000)
+	ch := make(chan *command, 10000)
 	go mapman(ch)
 	for {
 		// Wait for a connection.

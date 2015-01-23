@@ -7,12 +7,12 @@ import (
 	"net"
 )
 
-func handleConn(conn net.Conn, ch chan<- command) {
+func handleConn(conn net.Conn, ch chan<- *command) {
 	addr := conn.RemoteAddr()
 	log.Println(addr, "connected.")
 	scanner := bufio.NewScanner(conn)
 	writer := bufio.NewWriter(conn)
-	resp := make(chan string) // Response channel
+	resp := make(chan string, 2) // Response channel
 
 	for {
 		//Command Prompt
@@ -62,7 +62,7 @@ func handleConn(conn net.Conn, ch chan<- command) {
 					continue
 				}
 			}
-			ch <- cmd
+			ch <- &cmd
 			reply := <-resp
 			if cmd.action == 0 || cmd.action == 3 {
 				if cmd.noreply {
