@@ -122,16 +122,17 @@ func TestExpiry(t *testing.T) {
 func TestConcurrentTCPSets(t *testing.T) {
 	go main()
 
-	N := 200 //Number of concurrent connections: 2 hundred
+	N := 5000 //Number of concurrent connections
 	k := 100 //Number of operations per thread
-	//Total 200x100 = 20000 writes
+	
 	ack := make(chan bool, N)
 
 	for i := 0; i < N; i++ {
 		go client(t, k, ack, i)
+		time.Sleep(time.Nanosecond)	//	For some reason this is necessary
 	}
 
-	tick := time.Tick(3 * time.Second)
+	tick := time.Tick(25 * time.Second)
 
 	for i := 0; i < N; i++ {
 		select {
