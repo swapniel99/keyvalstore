@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"fmt"
 	"time"
 )
@@ -9,7 +10,8 @@ import (
 func mapman(ch chan *command) {
 	//The map which actually stores values
 	m := make(map[string]value)
-	
+	h := &nodeHeap{}
+	var counter uint64 = 0
 	go cleaner(1, ch)
 	for cmd := range ch {
 		r := "ERR_NOT_FOUND\r\n"
@@ -17,18 +19,17 @@ func mapman(ch chan *command) {
 		switch cmd.action {
 		case 0:
 			{
-				var version uint64
-				if !ok {
-					version = 0
-				} else {
-					version = val.version
-				}
+				version := counter
+				counter++
 				t := cmd.expiry
 				if t != 0 {
 					t += time.Now().Unix()
 				}
-				m[cmd.key] = value{cmd.data, cmd.numbytes, version + 1, t}
-				r = fmt.Sprintf("OK %v\r\n", version+1)
+				m[cmd.key] = value{cmd.data, cmd.numbytes, version, t}
+				if cmd.expiry != 0 {
+					heap.Push(h, node{t, cmd.key, version})
+				}
+				r = fmt.Sprintf("OK %v\r\n", version)
 			}
 		case 1:
 			{
@@ -57,8 +58,13 @@ func mapman(ch chan *command) {
 						if t != 0 {
 							t += time.Now().Unix()
 						}
-						m[cmd.key] = value{cmd.data, cmd.numbytes, val.version + 1, t}
-						r = fmt.Sprintf("OK %v\r\n", val.version+1)
+						version := counter
+						counter++
+						m[cmd.key] = value{cmd.data, cmd.numbytes, version, t}
+						if cmd.expiry != 0 {
+							heap.Push(h, node{t, cmd.key, version})
+						}
+						r = fmt.Sprintf("OK %v\r\n", version)
 					} else {
 						r = fmt.Sprintf("ERR_VERSION\r\n")
 					}
@@ -73,9 +79,12 @@ func mapman(ch chan *command) {
 			}
 		case 5:
 			{
-				for k, v := range m {
-					if v.expiry != 0 && v.expiry-time.Now().Unix() < 0 {
-						delete(m, k)
+				t := time.Now().Unix()
+				for (*h).Len() != 0 && (*h)[0].expiry <= t {
+					root := heap.Pop(h).(node)
+					v, e := m[root.key]
+					if e && root.version == v.version {
+						delete(m, root.key)
 					}
 				}
 				r = "CLEANED\r\n"

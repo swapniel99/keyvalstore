@@ -49,7 +49,7 @@ func TestConcurrentSets(t *testing.T) {
 
 	ch <- &c
 	r := strings.Split(<-resp, " ")[1]
-	if strconv.Itoa(N) != r {
+	if strconv.Itoa(N-1) != r {
 		t.Error("Serial version mismatch : Got "+r+" instead of", N)
 	}
 }
@@ -62,7 +62,8 @@ func TestConcurrentGets(t *testing.T) {
 
 	go mapman(ch)
 	ch <- &c
-	if "OK 1\r\n" != <-resp {
+
+	if "OK" != strings.Split(<-resp, " ")[0] {
 		t.Error("Unable to set : ")
 	}
 

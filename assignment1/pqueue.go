@@ -5,8 +5,9 @@ import (
 )
 
 type node struct {
-	expiry int64
-	key    string
+	expiry  int64
+	key     string
+	version uint64
 }
 
 type nodeHeap []node
@@ -34,4 +35,3 @@ func (h *nodeHeap) Pop() interface{} {
 	*h = old[0 : n-1]
 	return x
 }
-
