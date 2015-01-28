@@ -121,15 +121,15 @@ func TestExpiry(t *testing.T) {
 
 func TestConcurrentTCPSets(t *testing.T) {
 	go main()
-
-	N := 5000 //Number of concurrent connections
-	k := 100 //Number of operations per thread
 	
+	N := 5000 //Number of concurrent connections
+	k := 100  //Number of operations per thread
+
 	ack := make(chan bool, N)
 
 	for i := 0; i < N; i++ {
 		go client(t, k, ack, i)
-		time.Sleep(time.Nanosecond)	//	For some reason this is necessary
+		time.Sleep(time.Nanosecond) //	For some reason this is necessary
 	}
 
 	tick := time.Tick(25 * time.Second)
@@ -173,4 +173,29 @@ func client(t *testing.T, k int, ack chan<- bool, id int) {
 	}
 	conn.Close()
 	ack <- true
+}
+
+func TestClient(t *testing.T) {
+	conn, err := net.Dial("tcp", "127.0.0.1:9000")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	buff := bufio.NewReader(conn)
+	var line []byte
+	for j := 0; j < 10; j++ {
+		io.Copy(conn, bytes.NewBufferString("set key 0 10\r\n\r\n\r\n\r\n\r\n\r\n\r\n"))
+
+		line, err = buff.ReadBytes('\n')
+		if err != nil {
+			t.Error("Some error in reading TCP :", err)
+			conn.Close()
+			return
+		}
+		result := strings.Split(strings.TrimRight(string(line), "\r\n"), " ")[0]
+		if result != "OK" {
+			t.Error("Unable to set", string(line))
+		}
+	}
+	conn.Close()
 }
