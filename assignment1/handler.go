@@ -3,14 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"strings"
 )
 
 func handleConn(conn net.Conn, ch chan<- *command) {
 	addr := conn.RemoteAddr()
 	log.Println(addr, "connected.")
-	scanner := bufio.NewScanner(conn)
+	reader := bufio.NewReader(conn)
 	writer := bufio.NewWriter(conn)
 	resp := make(chan string, 1) // Response channel
 
@@ -18,21 +20,15 @@ func handleConn(conn net.Conn, ch chan<- *command) {
 		//Command Prompt
 		//		write(writer, addr, "kv@cs733 ~ $ ")	// The Command Prompt :)
 
-		success := scanner.Scan()
-		if !success {
-			e := scanner.Err()
-			if e != nil {
-				//Read error
-				log.Println("ERROR reading:", addr, e)
-			} else {
-				//EOF received
-				log.Println("End of Transmission by", addr)
-			}
+		str, e := reader.ReadString('\n')
+		if e != nil {
+			//Read error
+			log.Println("ERROR reading:", addr, e)
 			break
 		}
 
 		//Scan next line
-		str := scanner.Text()
+		str = strings.TrimRight(str, "\r\n")
 		if str == "" {
 			continue //Empty command
 		}
@@ -44,20 +40,21 @@ func handleConn(conn net.Conn, ch chan<- *command) {
 			//Do work here
 			cmd.resp = resp
 			if cmd.action == 0 || cmd.action == 3 {
-				successd := scanner.Scan()
-				if !successd {
-					ed := scanner.Err()
-					if ed != nil {
-						//Read error
-						log.Println("ERROR reading:", addr, ed)
-					} else {
-						//EOF received
-						log.Println("End of Transmission by", addr)
-					}
+				buf := make([]byte, cmd.numbytes)
+				_, ed := io.ReadFull(reader, buf)
+				if (ed) != nil {
+					//Read error
+					log.Println("ERROR reading data:", addr, ed)
 					break
 				}
-				cmd.data = scanner.Text()
-				if len(cmd.data) != cmd.numbytes {
+				tail, ed2 := reader.ReadString('\n')
+				if (ed2) != nil {
+					//Read error
+					log.Println("ERROR reading post-data:", addr, ed2)
+					break
+				}
+				cmd.data = string(buf)
+				if (strings.TrimRight(tail,"\r\n") != "") || (len(cmd.data) != cmd.numbytes) {
 					write(writer, addr, "ERR_CMD_ERR\r\n")
 					continue
 				}
