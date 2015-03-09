@@ -9,7 +9,9 @@ This is a key-value store written in GOlang. It listens on port 9000.
 
 # Instructions: How to run
 1.Obtain a copy of the project using:	go get github.com/swapniel99/keyvalstore
+
 2.Change directory to keyvalstore : cd $GOPATH/src/github.com/swapniel99/keyvalstore
+
 3.Run the test script using following commands: go test
 
 # Protocol specification
