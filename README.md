@@ -8,8 +8,8 @@ This is a key-value store written in GOlang. It listens on port 9000.
 * It uses a priority queue internally to keep track of key value pairs to be deleted after expiry.
 
 # Instructions: How to run
-1.Obtain a copy of the project using:	go get github.com/swapniel99/cs733
-2.Change directory to cs733 : cd $GOPATH/src/github.com/swapniel99/cs733
+1.Obtain a copy of the project using:	go get github.com/swapniel99/keyvalstore
+2.Change directory to keyvalstore : cd $GOPATH/src/github.com/swapniel99/keyvalstore
 3.Run the test script using following commands: go test
 
 # Protocol specification
