@@ -1,9 +1,5 @@
 package main
 
-import (
-//	"container/heap"
-)
-
 type node struct {
 	expiry  int64
 	key     string
